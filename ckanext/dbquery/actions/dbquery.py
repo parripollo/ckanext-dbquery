@@ -19,23 +19,24 @@ def query_database(context, data_dict):
     engine = model.meta.engine
 
     try:
-        text_sql = text(query)
-        result = engine.execute(text_sql)
+        # one transaction per query (SQLAlchemy 2: the engine itself does
+        # not execute; writes need a commit, done by the context manager)
+        with engine.begin() as connection:
+            result = connection.execute(text(query))
+            # Check if it's a SELECT query that returns rows
+            has_results = result.returns_rows
+            # Delete or update queries don't return results
+            if has_results:
+                rows = result.fetchall()
+                colnames = list(result.keys())
+                message = f"Query returned {len(rows)} rows"
+            else:
+                rows = []
+                colnames = []
+                message = f"Query affected {result.rowcount} rows"
     except Exception as e:
         log.critical(f"Error executing query {query}: {e}")
         raise toolkit.ValidationError({"query": f"Invalid Query: {e}"})
-
-    # Check if it's a SELECT query that returns rows
-    has_results = result.returns_rows
-    # Delete or update queries don't return results
-    if has_results:
-        rows = result.fetchall()
-        colnames = result.keys()
-        message = f"Query returned {len(rows)} rows"
-    else:
-        rows = []
-        colnames = []
-        message = f"Query affected {result.rowcount} rows"
 
     # Save executed query
     user_obj = context.get('auth_user_obj')

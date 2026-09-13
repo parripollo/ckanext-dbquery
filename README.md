@@ -1,4 +1,4 @@
-[![Tests](https://github.com/unckan/ckanext-dbquery/actions/workflows/test-extension.yml/badge.svg?branch=main)](https://github.com/unckan/ckanext-dbquery/actions)
+[![Tests](https://github.com/parripollo/ckanext-dbquery/workflows/Tests/badge.svg)](https://github.com/parripollo/ckanext-dbquery/actions/workflows/test.yml)
 
 # ckanext-dbquery
 
@@ -17,6 +17,8 @@ Compatibility with core CKAN versions:
 | 2.9 and earlier | not tested    |
 | 2.10            | not tested    |
 | 2.11            | In progress   |
+| 2.12 and later  | Yes (SQLAlchemy 2) |
+| [PostgreSQL-only CKAN](https://github.com/parripollo/ckanito) | Yes           |
 
 ## Config settings
 
