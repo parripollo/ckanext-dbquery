@@ -1,5 +1,5 @@
 import pytest
-from ckan.tests import helpers
+from ckan.tests import helpers, factories
 from ckan.plugins import toolkit
 from ckanext.dbquery.model import DBQueryExecuted
 
@@ -40,6 +40,22 @@ class TestQueryDatabaseAction:
         saved_query = helpers.model.Session.query(DBQueryExecuted).first()
         assert saved_query is not None
         assert saved_query.query == data_dict['query']
+
+    def test_query_database_write_is_committed(self, sysadmin):
+        """A write query is committed (one transaction per query)."""
+        context = {'user': sysadmin['name'], 'ignore_auth': False}
+        dataset = factories.Dataset(title='Before')
+
+        result = helpers.call_action(
+            'query_database', context,
+            query=f"UPDATE package SET title = 'After' WHERE id = '{dataset['id']}'")
+        assert result['message'] == 'Query affected 1 rows'
+        assert result['rows'] == []
+
+        read = helpers.call_action(
+            'query_database', context,
+            query=f"SELECT title FROM package WHERE id = '{dataset['id']}'")
+        assert read['rows'] == [{'title': 'After'}]
 
     def test_query_database_invalid_query(self, sysadmin):
         """Test handling of invalid SQL queries."""
